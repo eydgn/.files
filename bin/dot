@@ -13,8 +13,20 @@ jq -c '.[]' "$LINKS" | while read -r entry; do
   target="$ROOT/$src"
   [[ "$root" == "home" ]] && link="$HOME/$dst" || link="$CONFIG/$dst"
 
+  # Resolve link directory to detect if a parent symlink (e.g. ~/.config → ~/.files)
+  # would make us write inside $ROOT, causing a recursive self-link.
+  link_dir="$(dirname "$link")"
+  resolved_link_dir="$(realpath "$link_dir" 2>/dev/null || echo "")"
+  if [[ -n "$resolved_link_dir" ]]; then
+    resolved_link="$resolved_link_dir/$(basename "$link")"
+    if [[ "$resolved_link" == "$target" || "$resolved_link" == "$target"/* ]]; then
+      printf '  \e[31mERROR:\e[0m %s would create a recursive symlink (%s → %s). Skipping.\n' "$src" "$resolved_link" "$target"
+      continue
+    fi
+  fi
+
   [[ -e "$link" || -L "$link" ]] && rm -rf "$link"
-  mkdir -p "$(dirname "$link")"
+  mkdir -p "$link_dir"
   ln -s "$target" "$link"
   printf '  %s \e[2m→\e[22m %s\n' "$src" "$link"
 done
