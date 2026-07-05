@@ -1,1 +1,1 @@
-/home/ee-aydogan/.files/keybinds/fish-keybinds.fish
+/home/enes/.files/keybinds/fish-keybinds.fish
