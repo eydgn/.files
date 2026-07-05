@@ -5,26 +5,35 @@
     // "mode": "overlay",
     "spacing": 0,
     "modules-left": [
-        "ext/workspaces"
+        "clock",
+        "custom/prayerbar"
     ],
     "modules-center": [
+        "ext/workspaces"
     ],
     "modules-right": [
-        "custom/prayerbar",
+        "mpris",
         "cpu",
         "memory",
         "pulseaudio",
+        "network",
         "custom/weather",
-        "clock",
         "tray"
     ],
 
     "ext/workspaces": {
         "disable-scroll": true,
         "sort-by-id": true,
-        "format": " {icon} ",
+        "ignore-hidden": true,
+        "format": "{icon}",
         "format-icons": {
-            "urgent": " "
+            "1": "",
+            "2": "",
+            "3": "",
+            "4": "",
+            "5": "",
+            "urgent": "",
+            "default": ""
         },
         "on-click": "activate",
         "on-click-right": "deactivate"
@@ -81,6 +90,16 @@
             "critical": 80
         }
     },
+    "mpris": {
+        "format": "{status_icon} {title}",
+        "status-icons": {
+            "playing": "",
+            "paused": "",
+            "stopped": ""
+        },
+        "title-len": 30,
+        "on-click": "play-pause"
+    },
     "pulseaudio": {
         "scroll-step": 2,
         "format": "{icon} {volume}%",
@@ -95,7 +114,14 @@
         },
         "on-click": "pavucontrol",
         "on-click-right": "pamixer -t"
+    },
+    "network": {
+        "format-ethernet": "{icon} {ipaddr}",
+        "format-disconnected": "{icon} Disconnected",
+        "format-icons": {
+            "ethernet": "󰈀",
+            "disconnected": ""
+        },
+        "tooltip-format": "{ifname} - {ipaddr}"
     }
-}
-
 }
