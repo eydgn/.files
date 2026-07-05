@@ -16,6 +16,11 @@ vim.pack.add({
     gh("nvim-mini/mini.pairs"),
     { src = gh("catppuccin/nvim"), name = "catppuccin" },
     gh("folke/snacks.nvim"),
+    gh("stevearc/conform.nvim"),
+    gh("lewis6991/gitsigns.nvim"),
+    { src = gh("ThePrimeagen/harpoon"), version = "harpoon2" },
+    gh("nvim-pack/nvim-spectre"),
+    gh("folke/trouble.nvim"),
 })
 
 -- catppuccin
@@ -101,6 +106,7 @@ vim.lsp.config("lua_ls", {
 })
 vim.lsp.enable("lua_ls")
 vim.lsp.enable("fish_lsp")
+vim.lsp.enable("marksman")
 
 -- snacks
 
@@ -233,6 +239,7 @@ require("tree-sitter-manager").setup({
     ensure_installed = {
         "bash",
         "c",
+        "cpp",
         "diff",
         "html",
         "javascript",
@@ -255,69 +262,60 @@ require("tree-sitter-manager").setup({
         "xml",
         "yaml",
         "go",
+        "rust",
+        "css",
+        "fish",
     },
     auto_install = true,
+    highlight = true,
 })
 
 -- ============================================================================
--- LAZY: conform
+-- EAGER: conform
 -- ============================================================================
 
 -- stylua: ignore start
-local conform_setup = function()
-    vim.pack.add({ gh("stevearc/conform.nvim") })
-    require("conform").setup({
-        formatters_by_ft = {
-            lua = { "stylua" },
-            markdown = { "prettier" },
-            fish = { "fish_indent" },
-            python = { "ruff" },
-            json = { "prettier" },
-        },
-        default_format_opts = {
-            lsp_format = "fallback",
-            async = true,
-        },
-    })
-    map("n", "<leader>f", function() require("conform").format() end, { desc = "Format buffer" })
-    map("n", "<leader>w", function() require("conform").format() vim.cmd("w") end, { noremap = true, silent = true, desc = "Format and save" })
-end
+require("conform").setup({
+    formatters_by_ft = {
+        lua = { "stylua" },
+        markdown = { "prettier" },
+        fish = { "fish_indent" },
+        python = { "ruff" },
+        json = { "prettier" },
+        c = { "clang-format" },
+        cpp = { "clang-format" },
+    },
+    default_format_opts = {
+        lsp_format = "fallback",
+        async = true,
+    },
+})
 
-map("n", "<leader>f", function() conform_setup() require("conform").format() end, { desc = "Format buffer" })
-map("n", "<leader>w", function() conform_setup() require("conform").format() vim.cmd("w") end, { noremap = true, silent = true, desc = "Format and save" })
+map("n", "<leader>f", function() require("conform").format() end, { desc = "Format buffer" })
+map("n", "<leader>w", function() require("conform").format() vim.cmd("w") end, { noremap = true, silent = true, desc = "Format and save" })
 -- stylua: ignore end
 
 -- ============================================================================
--- LAZY: gitsigns
+-- EAGER: gitsigns
 -- ============================================================================
 
-do
-    local g = vim.api.nvim_create_augroup("LazyGitsigns", { clear = true })
-    vim.api.nvim_create_autocmd("BufReadPre", {
-        group = g,
-        once = true,
-        callback = function()
-            vim.pack.add({ gh("lewis6991/gitsigns.nvim") })
-            require("gitsigns").setup({
-                signs = {
-                    add = { text = "▎" },
-                    change = { text = "▎" },
-                    delete = { text = "" },
-                    topdelete = { text = "" },
-                    changedelete = { text = "▎" },
-                    untracked = { text = "▎" },
-                },
-                signs_staged = {
-                    add = { text = "▎" },
-                    change = { text = "▎" },
-                    delete = { text = "" },
-                    topdelete = { text = "" },
-                    changedelete = { text = "▎" },
-                },
-            })
-        end,
-    })
-end
+require("gitsigns").setup({
+    signs = {
+        add = { text = "▎" },
+        change = { text = "▎" },
+        delete = { text = "" },
+        topdelete = { text = "" },
+        changedelete = { text = "▎" },
+        untracked = { text = "▎" },
+    },
+    signs_staged = {
+        add = { text = "▎" },
+        change = { text = "▎" },
+        delete = { text = "" },
+        topdelete = { text = "" },
+        changedelete = { text = "▎" },
+    },
+})
 
 -- stylua: ignore start
 map("n", "]h", function()
@@ -342,88 +340,57 @@ map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", { desc = "Select hunk"
 -- stylua: ignore end
 
 -- ============================================================================
--- LAZY: harpoon
+-- EAGER: harpoon
 -- ============================================================================
 
 -- stylua: ignore start
-local harpoon_setup = function()
-    vim.pack.add({ { src = gh("ThePrimeagen/harpoon"), version = "harpoon2" } })
-    local harpoon = require("harpoon")
-    harpoon:setup({
-        settings = {
-            save_on_toggle = true,
-            sync_on_ui_close = true,
-        },
-    })
-    map("n", "<leader>a", function() require("harpoon"):list():add() end, { desc = "Add to harpoon" })
-    map("n", "<A-;>", function() require("harpoon").ui:toggle_quick_menu(require("harpoon"):list()) end, { desc = "Harpoon menu" })
-    map("n", "<A-h>", function() require("harpoon"):list():select(1) end, { desc = "Harpoon file 1" })
-    map("n", "<A-t>", function() require("harpoon"):list():select(2) end, { desc = "Harpoon file 2" })
-    map("n", "<A-n>", function() require("harpoon"):list():select(3) end, { desc = "Harpoon file 3" })
-    map("n", "<A-s>", function() require("harpoon"):list():select(4) end, { desc = "Harpoon file 4" })
-    return harpoon
-end
+require("harpoon"):setup({
+    settings = {
+        save_on_toggle = true,
+        sync_on_ui_close = true,
+    },
+})
 
-map("n", "<leader>a", function() harpoon_setup():list():add() end, { desc = "Add to harpoon" })
-map("n", "<A-;>", function() local h = harpoon_setup() h.ui:toggle_quick_menu(h:list()) end, { desc = "Harpoon menu" })
-map("n", "<A-h>", function() harpoon_setup():list():select(1) end, { desc = "Harpoon file 1" })
-map("n", "<A-t>", function() harpoon_setup():list():select(2) end, { desc = "Harpoon file 2" })
-map("n", "<A-n>", function() harpoon_setup():list():select(3) end, { desc = "Harpoon file 3" })
-map("n", "<A-s>", function() harpoon_setup():list():select(4) end, { desc = "Harpoon file 4" })
+map("n", "<leader>a", function() require("harpoon"):list():add() end, { desc = "Add to harpoon" })
+map("n", "<A-;>", function() require("harpoon").ui:toggle_quick_menu(require("harpoon"):list()) end, { desc = "Harpoon menu" })
+map("n", "<A-h>", function() require("harpoon"):list():select(1) end, { desc = "Harpoon file 1" })
+map("n", "<A-t>", function() require("harpoon"):list():select(2) end, { desc = "Harpoon file 2" })
+map("n", "<A-n>", function() require("harpoon"):list():select(3) end, { desc = "Harpoon file 3" })
+map("n", "<A-s>", function() require("harpoon"):list():select(4) end, { desc = "Harpoon file 4" })
 -- stylua: ignore end
 
 -- ============================================================================
--- LAZY: spectre
+-- EAGER: spectre
 -- ============================================================================
 
 -- stylua: ignore start
-local spectre_setup = function()
-    vim.pack.add({ gh("nvim-pack/nvim-spectre") })
-    map("n", "gs", '<cmd>lua require("spectre").toggle()<CR>', { desc = "Toggle Spectre" })
-    map("n", "<leader>sw", '<cmd>lua require("spectre").open_visual({select_word=true})<CR>', { desc = "Search word" })
-    map("v", "<leader>sw", '<esc><cmd>lua require("spectre").open_visual()<CR>', { desc = "Search visual selection" })
-    map("n", "<leader>sp", '<cmd>lua require("spectre").open_file_search({select_word=true})<CR>', { desc = "Search file" })
-end
-
-map("n", "gs", function() spectre_setup() require("spectre").toggle() end, { desc = "Toggle Spectre" })
-map("n", "<leader>sw", function() spectre_setup() require("spectre").open_visual({ select_word = true }) end, { desc = "Search word" })
-map("v", "<leader>sw", function() spectre_setup() require("spectre").open_visual() end, { desc = "Search visual selection" })
-map("n", "<leader>sp", function() spectre_setup() require("spectre").open_file_search({ select_word = true }) end, { desc = "Search file" })
+map("n", "gs", function() require("spectre").toggle() end, { desc = "Toggle Spectre" })
+map("n", "<leader>sw", function() require("spectre").open_visual({ select_word = true }) end, { desc = "Search word" })
+map("v", "<leader>sw", function() require("spectre").open_visual() end, { desc = "Search visual selection" })
+map("n", "<leader>sp", function() require("spectre").open_file_search({ select_word = true }) end, { desc = "Search file" })
 -- stylua: ignore end
 
 -- ============================================================================
--- LAZY: trouble
+-- EAGER: trouble
 -- ============================================================================
 
 -- stylua: ignore start
-local trouble_setup = function()
-    vim.pack.add({ gh("folke/trouble.nvim") })
-    require("trouble").setup({ focus = true })
-    vim.api.nvim_create_autocmd("QuickFixCmdPost", {
-        callback = function() vim.cmd([[Trouble qflist open]]) end,
-    })
-    map("n", "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", { desc = "Diagnostics (Trouble)" })
-    map("n", "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", { desc = "Buffer diagnostics (Trouble)" })
-    map("n", "<leader>cs", "<cmd>Trouble symbols toggle focus=false<cr>", { desc = "Symbols (Trouble)" })
-    map("n", "<leader>cl", "<cmd>Trouble lsp toggle focus=false win.position=right<cr>", { desc = "LSP references (Trouble)" })
-    map("n", "<leader>xL", "<cmd>Trouble loclist toggle<cr>", { desc = "Location list (Trouble)" })
-    map("n", "<leader>xQ", "<cmd>Trouble qflist toggle<cr>", { desc = "Quickfix list (Trouble)" })
-    map("n", "[q", function() if require("trouble").is_open() then require("trouble").prev({ skip_groups = true, jump = true }) else local ok, err = pcall(vim.cmd.cprev) if not ok then vim.notify(err, vim.log.levels.ERROR) end end end, { desc = "Previous trouble/quickfix item" })
-    map("n", "]q", function() if require("trouble").is_open() then require("trouble").next({ skip_groups = true, jump = true }) else local ok, err = pcall(vim.cmd.cnext) if not ok then vim.notify(err, vim.log.levels.ERROR) end end end, { desc = "Next trouble/quickfix item" })
-end
-
-map("n", "<leader>xx", function() trouble_setup() vim.cmd("Trouble diagnostics toggle") end, { desc = "Diagnostics (Trouble)" })
-map("n", "<leader>xX", function() trouble_setup() vim.cmd("Trouble diagnostics toggle filter.buf=0") end, { desc = "Buffer diagnostics (Trouble)" })
-map("n", "<leader>cs", function() trouble_setup() vim.cmd("Trouble symbols toggle focus=false") end, { desc = "Symbols (Trouble)" })
-map("n", "<leader>cl", function() trouble_setup() vim.cmd("Trouble lsp toggle focus=false win.position=right") end, { desc = "LSP references (Trouble)" })
-map("n", "<leader>xL", function() trouble_setup() vim.cmd("Trouble loclist toggle") end, { desc = "Location list (Trouble)" })
-map("n", "<leader>xQ", function() trouble_setup() vim.cmd("Trouble qflist toggle") end, { desc = "Quickfix list (Trouble)" })
-map("n", "[q", function() trouble_setup() if require("trouble").is_open() then require("trouble").prev({ skip_groups = true, jump = true }) else local ok, err = pcall(vim.cmd.cprev) if not ok then vim.notify(err, vim.log.levels.ERROR) end end end, { desc = "Previous trouble/quickfix item" })
-map("n", "]q", function() trouble_setup() if require("trouble").is_open() then require("trouble").next({ skip_groups = true, jump = true }) else local ok, err = pcall(vim.cmd.cnext) if not ok then vim.notify(err, vim.log.levels.ERROR) end end end, { desc = "Next trouble/quickfix item" })
+require("trouble").setup({ focus = true })
+vim.api.nvim_create_autocmd("QuickFixCmdPost", {
+    callback = function() vim.cmd([[Trouble qflist open]]) end,
+})
+map("n", "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", { desc = "Diagnostics (Trouble)" })
+map("n", "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", { desc = "Buffer diagnostics (Trouble)" })
+map("n", "<leader>cs", "<cmd>Trouble symbols toggle focus=false<cr>", { desc = "Symbols (Trouble)" })
+map("n", "<leader>cl", "<cmd>Trouble lsp toggle focus=false win.position=right<cr>", { desc = "LSP references (Trouble)" })
+map("n", "<leader>xL", "<cmd>Trouble loclist toggle<cr>", { desc = "Location list (Trouble)" })
+map("n", "<leader>xQ", "<cmd>Trouble qflist toggle<cr>", { desc = "Quickfix list (Trouble)" })
+map("n", "[q", function() if require("trouble").is_open() then require("trouble").prev({ skip_groups = true, jump = true }) else local ok, err = pcall(vim.cmd.cprev) if not ok then vim.notify(err, vim.log.levels.ERROR) end end end, { desc = "Previous trouble/quickfix item" })
+map("n", "]q", function() if require("trouble").is_open() then require("trouble").next({ skip_groups = true, jump = true }) else local ok, err = pcall(vim.cmd.cnext) if not ok then vim.notify(err, vim.log.levels.ERROR) end end end, { desc = "Next trouble/quickfix item" })
 -- stylua: ignore end
 
 -- ============================================================================
--- LAZY: smart-splits
+-- EAGER: smart-splits
 -- ============================================================================
 
 -- stylua: ignore start
@@ -581,23 +548,9 @@ map("n", "<leader>gg", function()
 end, { desc = "Neogit" })
 
 -- ============================================================================
--- UTILITY COMMAND: LazyLoadAll
+-- UTILITY COMMAND: UpdateAll
 -- ============================================================================
 
 vim.api.nvim_create_user_command("UpdateAll", function()
-    vim.pack.add({
-        gh("stevearc/conform.nvim"),
-        gh("lewis6991/gitsigns.nvim"),
-        { src = gh("ThePrimeagen/harpoon"), version = "harpoon2" },
-        gh("MeanderingProgrammer/render-markdown.nvim"),
-        gh("jakewvincent/mkdnflow.nvim"),
-        gh("nvim-pack/nvim-spectre"),
-        gh("folke/trouble.nvim"),
-        gh("mrjones2014/smart-splits.nvim"),
-        gh("NeogitOrg/neogit"),
-        gh("sindrets/diffview.nvim"),
-        gh("esmuellert/codediff.nvim"),
-        gh("m00qek/baleia.nvim"),
-    })
     vim.pack.update()
-end, { desc = "Load all lazy plugins and update" })
+end, { desc = "Update all plugins" })
