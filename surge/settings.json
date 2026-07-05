@@ -1,10 +1,11 @@
 {
   "general": {
-    "default_download_dir": "/home/eydgn/Downloads",
+    "default_download_dir": "",
     "warn_on_duplicate": true,
     "download_complete_notification": true,
     "allow_remote_open_actions": false,
     "auto_resume": false,
+    "auto_start": false,
     "skip_update_check": false,
     "clipboard_monitor": true,
     "theme": 2,
@@ -22,7 +23,9 @@
     "sequential_download": false,
     "min_chunk_size": 2097152,
     "worker_buffer_size": 524288,
-    "dial_hedge_count": 4
+    "dial_hedge_count": 4,
+    "global_rate_limit": "20.0 MB/s",
+    "default_download_rate_limit": "0"
   },
   "performance": {
     "max_task_retries": 3,
@@ -33,49 +36,13 @@
   },
   "categories": {
     "category_enabled": true,
-    "categories": [
-      {
-        "name": "Videos",
-        "description": "MP4s, MKVs, AVIs, and other video files.",
-        "pattern": "(?i)\\.(mp4|mkv|avi|mov|wmv|flv|webm|m4v|mpg|mpeg|3gp)$",
-        "path": "/home/eydgn/Downloads"
-      },
-      {
-        "name": "Music",
-        "description": "MP3s, FLACs, and other audio files.",
-        "pattern": "(?i)\\.(mp3|flac|wav|aac|ogg|wma|m4a|opus)$",
-        "path": "/home/eydgn/Downloads"
-      },
-      {
-        "name": "Compressed",
-        "description": "ZIPs, RARs, and other archive files.",
-        "pattern": "(?i)\\.(zip|rar|7z|tar|gz|bz2|xz|zst|tgz)$",
-        "path": "/home/eydgn/Downloads"
-      },
-      {
-        "name": "Documents",
-        "description": "PDFs, Word docs, spreadsheets, etc.",
-        "pattern": "(?i)\\.(pdf|doc|docx|xls|xlsx|ppt|pptx|odt|ods|txt|rtf|csv|epub)$",
-        "path": "/home/eydgn/Downloads"
-      },
-      {
-        "name": "Programs",
-        "description": "Executables, installers, and scripts.",
-        "pattern": "(?i)\\.(exe|msi|deb|rpm|appimage|dmg|pkg|flatpak|snap|sh|run|bin)$",
-        "path": "/home/eydgn/Downloads"
-      },
-      {
-        "name": "Images",
-        "description": "JPEGs, PNGs, and other image files.",
-        "pattern": "(?i)\\.(jpg|jpeg|png|gif|bmp|svg|webp|ico|tiff|psd)$",
-        "path": "/home/eydgn/Downloads"
-      }
-    ]
+    "categories": []
   },
   "extension": {
     "extension_prompt": false,
     "chrome_extension_url": "https://github.com/SurgeDM/Surge/releases/latest",
     "firefox_extension_url": "https://addons.mozilla.org/en-US/firefox/addon/surge/",
+    "auth_token": "",
     "instructions_url": "https://github.com/SurgeDM/Surge#browser-extension"
   }
 }

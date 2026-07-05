@@ -1,1 +1,1 @@
-/home/ee-aydogan/.files/keybinds/neovim-keybinds.lua
+/home/enes/.files/keybinds/neovim-keybinds.lua
