@@ -1,5 +1,4 @@
 import os
-from kitty.boss import get_boss
 from kitty.fast_data_types import Screen, get_options
 from kitty.utils import color_as_int
 from kitty.tab_bar import (
@@ -53,22 +52,6 @@ def _get_tab_label(tab):
     return tab.title
 
 
-def _compute_total_width():
-    try:
-        boss = get_boss()
-        tm = boss.active_tab_manager
-        if not tm or not tm.tabs:
-            return 0, 0
-        total = 0
-        num = len(tm.tabs)
-        for t in tm.tabs:
-            label = _get_tab_label(t)
-            total += len(label) + 4
-        return num, total
-    except Exception:
-        return 0, 0
-
-
 def draw_tab(
     draw_data: DrawData, screen: Screen, tab: TabBarData,
     before: int, max_title_length: int, index: int, is_last: bool,
@@ -82,18 +65,17 @@ def draw_tab(
         tab_bg = colors['bg']
     bar_bg = colors['bar_bg']
 
-    if index == 1:
-        num_tabs, total_width = _compute_total_width()
-        if num_tabs > 0:
-            padding = max(0, (screen.columns - total_width) // 2)
-            if padding > 0:
-                screen.cursor.bg = bar_bg
-                screen.draw(' ' * padding)
-
     label = _get_tab_label(tab)
 
     if not label:
         label = tab.title
+
+    available = max_title_length - 4
+    if available < len(label):
+        if available > 1:
+            label = label[:available - 1] + '\u2026'
+        else:
+            label = label[:max(0, available)]
 
     screen.cursor.fg = tab_bg
     screen.cursor.bg = bar_bg
@@ -106,9 +88,5 @@ def draw_tab(
     screen.cursor.fg = tab_bg
     screen.cursor.bg = bar_bg
     screen.draw('\uE0B4')
-
-    if is_last:
-        screen.cursor.bg = bar_bg
-        screen.draw(' ' * (screen.columns - screen.cursor.x))
 
     return screen.cursor.x
