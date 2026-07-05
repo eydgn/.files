@@ -23,8 +23,6 @@
 | `Super+Shift+←/→/↑/↓` | — | — | exchange_client | — | — | Mango: swap windows |
 | `Super+Alt+←/→/↑/↓` | — | — | resizewin (±50px) | — | — | Mango: resize window |
 | `Super+Ctrl+Shift+←/→/↑/↓` | — | — | movewin (±50px) | — | — | Mango: nudge window position |
-| `Super+Alt+,/.` | — | — | focusmon (prev/next) | — | — | Mango: focus monitor |
-| `Super+Alt+Shift+,/.` | — | — | tagmon (send to monitor) | — | — | Mango: send to monitor |
 | `Super+,/.` | — | — | viewtoleft/right_have_client (prev/next workspace) | — | — | Mango-only |
 | `Super+Shift+,/.` | — | — | tagtoleft/right (move to workspace) | — | — | Mango-only |
 | `Ctrl+←/→/↑/↓` | neighboring_window (guarded by IS_NVIM) | move cursor split (smart-splits) | — | — | **✓** | Both navigate boundaries |
@@ -45,6 +43,7 @@
 | `Alt+,` | previous_tab | — | — | — | — | Kitty-only. **✦** Neovim uses `Ctrl+,` instead |
 | `Alt+Shift+.` | move_tab_forward | — | — | — | — | Kitty-only |
 | `Alt+Shift+,` | move_tab_backward | — | — | — | — | Kitty-only |
+| `Alt+A` | new_tab_with_cwd | — | — | — | — | Kitty-only |
 | `Ctrl+.` | — | next tab (n) | — | — | **✦** | Matches kitty's `Alt+.`, different modifier |
 | `Ctrl+,` | — | prev tab (n) | — | — | **✦** | Matches kitty's `Alt+,`, different modifier |
 | `Ctrl+Shift+.` | — | move tab right (n) | — | — | **✦** | Matches kitty's `Alt+Shift+.` |
@@ -73,9 +72,9 @@
 | `Ctrl+S` | — | split below (`<C-w>s`) (n) | — | — | — | Neovim-only. XOFF disabled in kitty via `map ctrl+s discard_event` |
 | `Ctrl+F` | — | cycle windows (`<C-w><C-w>`) (n) | — | — | — | Neovim-only |
 | `Ctrl+\` | — | previous split (smart-splits) (n) | — | — | — | Neovim-only |
-| `Ctrl+Shift+\`` | move_window_to_top | — | — | — | — | Kitty-only |
-| `Ctrl+Shift+B` | move_window_backward | — | — | — | — | Kitty-only |
-| `Ctrl+Shift+F` | move_window_forward | — | — | — | — | Kitty-only |
+| `Alt+T` | move_window_to_top | — | — | — | — | Kitty-only |
+| `Alt+B` | move_window_backward | — | — | — | — | Kitty-only |
+| `Alt+F` | move_window_forward | — | — | — | — | Kitty-only |
 | `<leader><leader>←/→/↑/↓` | — | swap buffer direction (smart-splits) (n) | — | — | — | Neovim-only |
 
 ---
@@ -108,7 +107,24 @@
 | `Alt+N` | — | harpoon file 3 (n) | — | — | — | Neovim-only |
 | `Alt+S` | — | harpoon file 4 (n) | — | — | — | Neovim-only |
 | `Super+O` | — | — | rofi (app launcher) | — | — | Mango-only |
-| `Super+Shift+Return` | — | — | spawn firefox | — | — | Mango-only |
+| `Super+Shift+Return` | — | — | spawn helium-browser | — | — | Mango-only |
+| `Super+P` | — | — | rofi-gopass | — | — | Mango-only |
+| `Super+E` | — | — | kitty (code terminal, `--app-id kitty-code`) | — | — | Mango-only |
+| `Super+V` | — | — | mpv-picker | — | — | Mango-only |
+| `Super+D` | — | — | zathura | — | — | Mango-only |
+| `Super+R` | — | — | toggle_named_scratchpad: kitty-runner | — | — | Mango-only |
+| `Super+N` | — | — | toggle_named_scratchpad: kitty-yazi | — | — | Mango-only |
+| `Super+M` | — | — | toggle_named_scratchpad: spotify-launcher | — | — | Mango-only |
+| `Super+S` | — | — | toggle_named_scratchpad: kitty-surge | — | — | Mango-only |
+| `Super+C` | — | — | toggle_named_scratchpad: qalculate-gtk | — | — | Mango-only |
+| `Super+B` | — | — | toggle_named_scratchpad: kitty-btop | — | — | Mango-only |
+| `Super+Y` | — | — | toggle_named_scratchpad: kitty-notes (nvim) | — | — | Mango-only |
+| `Super+K` | — | — | rofi-keybinds (keybind search) | — | — | Mango-only |
+| `Super+U` | — | — | clipmenu (clipboard manager) | — | — | Mango-only |
+| `Super+Q` | — | — | rofi-search (web search, `!yt` `!gh` `!git`) | — | — | Mango-only |
+| `Super+Shift+K` | — | — | rofi-kill (process killer) | — | — | Mango-only |
+| `Super+Shift+E` | — | — | rofi-emoji (emoji picker) | — | — | Mango-only |
+| `Super+Shift+B` | — | — | rofi-bookmarks (Helium bookmarks) | — | — | Mango-only |
 
 ---
 
@@ -197,7 +213,7 @@
 | Shortcut | Kitty | Neovim | Mango | Fish | Same? | Notes |
 |---|---|---|---|---|---|---|
 | `F5` | load_config_file | — | — | — | — | Kitty-only |
-| `Super+R` | — | — | reload_config | — | **✦** | Same purpose as kitty's F5 |
+| `Super+Shift+R` | — | — | reload_config | — | **✦** | Same purpose as kitty's F5 |
 | `Ctrl+Shift+F1` | show_kitty_doc | — | — | — | — | Kitty-only |
 | `Ctrl+Shift+F2` | edit_config_file | — | — | — | — | Kitty-only |
 | `Ctrl+Shift+C` | copy_to_clipboard | — | — | — | — | Kitty-only |
@@ -210,6 +226,16 @@
 | `Super+Left btn` | — | — | moveresize curmove | — | — | Mango mouse |
 | `Super+Right btn` | — | — | moveresize curresize | — | — | Mango mouse |
 | `Super+Wheel ↑/↓` | — | — | viewtoleft/right_have_client | — | — | Mango axis |
+| `Super+Escape` | — | — | rofi-power (power menu) | — | — | Mango-only |
+| `Print` | — | — | grim (full screen) | — | — | Mango-only |
+| `Super+Shift+S` | — | — | grim + slurp (selection) | — | — | Mango-only |
+| `XF86AudioRaiseVolume` | — | — | wpctl set-volume 5%+ | — | — | Mango-only |
+| `XF86AudioLowerVolume` | — | — | wpctl set-volume 5%- | — | — | Mango-only |
+| `XF86AudioMute` | — | — | wpctl set-mute toggle | — | — | Mango-only |
+| `Shift+XF86AudioMute` | — | — | wpctl set-mute @DEFAULT_SOURCE@ toggle | — | — | Mango-only (mic) |
+| `XF86AudioNext` | — | — | playerctl next | — | — | Mango-only |
+| `XF86AudioPrev` | — | — | playerctl previous | — | — | Mango-only |
+| `XF86AudioPlay` | — | — | playerctl play-pause | — | — | Mango-only |
 | `<leader>xx` | — | toggle diagnostics (Trouble) (n) | — | — | — | Neovim-only |
 | `<leader>xX` | — | buffer diagnostics (Trouble) (n) | — | — | — | Neovim-only |
 | `<leader>cs` | — | symbols (Trouble) (n) | — | — | — | Neovim-only |
@@ -222,6 +248,41 @@
 ---
 
 ## 11. Shell Commands (Fish)
+
+### Fzf Search Keybindings
+
+| Shortcut | Function | Description |
+|---|---|---|
+| `Ctrl+Alt+F` | `_fzf_search_directory` | Search files in current directory via `fd`. Preview: syntax-highlighted file contents, directory listing, or file type info. Directories get a trailing `/`. Ignores git-ignored files. |
+| `Ctrl+Alt+L` | `_fzf_search_git_log` | Browse formatted git log. Preview: commit message + diff. |
+| `Ctrl+Alt+S` | `_fzf_search_git_status` | Browse `git status --short`. Preview: git diff of file. |
+| `Ctrl+R` | `_fzf_search_history` | Search Fish command history. Preview: full command with Fish syntax highlighting. |
+| `Ctrl+Alt+P` | `_fzf_search_processes` | Search running processes via `ps`. Preview: CPU, memory, start time, and other process info. |
+| `Ctrl+V` | `_fzf_search_variables` | Search shell variables in scope. Preview: variable scope info and values. `$history` excluded. |
+
+### Common Shell Keybindings
+
+| Shortcut | Action |
+|---|---|
+| `Alt+.` / `Alt+_` | Insert last argument from previous command |
+| `Ctrl+A` / `Ctrl+E` | Move to beginning / end of line |
+| `Ctrl+U` | Erase entire line |
+| `Ctrl+W` | Erase word backward |
+| `Alt+D` | Delete word forward |
+| `Ctrl+L` | Clear screen |
+| `Ctrl+F` / `Ctrl+B` | Move forward / backward one character |
+| `Alt+F` / `Alt+B` | Move forward / backward one word |
+
+### Auto-pair Bindings
+
+| Shortcut | Action |
+|---|---|
+| `(`, `)`, `[`, `]`, `{`, `}` | Auto-insert matching pair |
+| `"`, `'` | Auto-insert matching quote |
+| `Backspace` | Delete matching pair |
+| `Tab` | Smart tab completion inside pairs |
+
+### Aliases & Functions
 
 | Command | Type | Expands To | Notes |
 |---|---|---|---|
@@ -239,6 +300,8 @@
 | `v` | function | fzf picker → nvim (no hidden) | |
 | `vh` | function | fzf picker → nvim (with hidden) | |
 | `y` | function | yazi (cwd tracking) | |
+| `j` | function | fd → zoxide add + cd (from $PWD) | Directory jump |
+| `jw` | function | fd → zoxide add + cd (workspace dirs) | Jump to Code/Docs/Media/.files |
 | `fzf` | function | lazy load fzf | |
 | `z` | function | lazy load zoxide | **✦** Neovim has `S-z` for same |
 | `zi` | function | lazy load zoxide interactive | |
