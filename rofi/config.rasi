@@ -1,6 +1,7 @@
 configuration {
-    show-icons: true;
-    font: "JetBrainsMono Nerd Font 16";
+    show-icons: false;
+    font: "JetBrainsMono Nerd Font 12";
+    case-sensitive: false;
 
     display-ssh:    "󰣀 ssh:";
     display-run:    "󱓞 run:";
@@ -8,6 +9,8 @@ configuration {
     display-window: "󱂬 window:";
     display-combi:  "󰕘 combi:";
     display-filebrowser: "󰉋 filebrowser:";
+
+    dpi: 0;
 }
 
 @theme "~/.config/rofi/catppuccin-lavrent-mocha.rasi"
