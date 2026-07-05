@@ -76,6 +76,11 @@
     "dst": "opencode/opencode.jsonc"
   },
   {
+    "type": "dir",
+    "src": "opencode/themes",
+    "dst": "opencode/themes"
+  },
+  {
     "type": "file",
     "src": "keybinds/fish-keybinds.fish",
     "dst": "fish/keybinds.fish"
@@ -149,12 +154,6 @@
     "dst": "modprobed.db"
   },
   {
-    "type": "dir",
-    "src": "themes",
-    "dst": ".themes",
-    "root": "home"
-  },
-  {
     "type": "file",
     "src": "npmrc",
     "dst": ".npmrc",
@@ -164,5 +163,15 @@
     "type": "dir",
     "src": "surge",
     "dst": "surge"
+  },
+  {
+    "type": "dir",
+    "src": "yt-dlp",
+    "dst": "yt-dlp"
+  },
+  {
+    "type": "dir",
+    "src": "MangoHud",
+    "dst": "MangoHud"
   }
 ]
