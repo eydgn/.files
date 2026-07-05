@@ -7,3 +7,24 @@ group = "git"
 url   = "*/"
 run   = "git"
 group = "git"
+
+[mgr]
+# ratio= [1,2,4]
+sort_by = "natural"
+sort_dir_first = true
+sort_translit = true
+
+[input]
+cursor_blink = true
+
+[[plugin.prepend_fetchers]]
+url   = "local://*"
+run   = "mime-ext.local"
+prio  = "high"
+group = "mime"
+
+[[plugin.prepend_fetchers]]
+url   = "remote://*"
+run   = "mime-ext.remote"
+prio  = "high"
+group = "mime"

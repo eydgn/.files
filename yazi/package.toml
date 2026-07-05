@@ -1,12 +1,32 @@
 [[plugin.deps]]
 use = "yazi-rs/plugins:git"
-rev = "be524fb"
+rev = "5d461d8"
 hash = "88e56a64b7ce7c4314427452343fef17"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:mount"
-rev = "be524fb"
+rev = "5d461d8"
 hash = "e3260d0b1feded8c8e3ae3afa1169e30"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:smart-filter"
+rev = "5d461d8"
+hash = "d6f7351ea25a43c9b5f4315fa1e23935"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:chmod"
+rev = "5d461d8"
+hash = "5b1c276b75cae91cbbdbe7863f39a540"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:jump-to-char"
+rev = "5d461d8"
+hash = "7a4b4237223aaa94e589d1c01a23542a"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:mime-ext"
+rev = "5d461d8"
+hash = "2678c84a0b3a0b22504e918ccaf99011"
 
 [[flavor.deps]]
 use = "Mintass/rose-pine"
