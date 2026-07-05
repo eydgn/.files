@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+MD="$HOME/.files/keybinds/KEYBINDS.md"
+[ -f "$MD" ] || MD="$(dirname "$0")/../keybinds/KEYBINDS.md"
+[ -f "$MD" ] || { notify-send "rofi-keybinds" "KEYBINDS.md not found"; exit 1; }
+
+selected=$(
+  gawk -F'|' '
+    BEGIN {
+      app[3] = "Kitty"
+      app[4] = "Neovim"
+      app[5] = "Mango"
+      app[6] = "Fish"
+      section = ""
+    }
+    function clean(s) {
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", s)
+      gsub(/\*\*/, "", s)
+      gsub(/^`|`$/, "", s)
+      return s
+    }
+    /^## / {
+      section = $0
+      gsub(/^## +([0-9]+\. +)?/, "", section)
+      gsub(/ +$/, "", section)
+      sec9 = (section ~ /Layout/) ? 1 : 0
+    }
+    /^\| `[^`]+` \|/ && section !~ /^(Legend|Conflict|Modifier)/ && section != "Shell Commands (Fish)" {
+      shortcut = clean($2)
+      if (shortcut ~ /^-+$|^(Shortcut|Command)$/) next
+      if (sec9) {
+        val = clean($3)
+        if (val ~ /[[:alnum:]]/) print app[3] ": " shortcut "  \u2192  " val
+      } else {
+        for (i = 3; i <= 6; i++) {
+          val = clean($i)
+          if (val ~ /[[:alnum:]]/) print app[i] ": " shortcut "  \u2192  " val
+        }
+      }
+    }
+    /^\| `[^`]+` \|/ && section == "Shell Commands (Fish)" {
+      cmd  = clean($2)
+      typ  = clean($3)
+      xval = clean($4)
+      notes = clean($5)
+      if (cmd ~ /^-+$|^(Command)$/) next
+      desc = typ ? "[" typ "] " xval : xval
+      if (notes) desc = desc "  (" notes ")"
+      print "Fish: " cmd "  \u2192  " desc
+    }
+  ' "$MD" | sort -k1,1 -s | rofi -dmenu -p "Keybinds" -i -width 100 -no-custom
+)
+
+if [ -n "$selected" ]; then
+  echo "$selected" | wl-copy
+  notify-send "rofi-keybinds" "Copied" -t 1500
+fi

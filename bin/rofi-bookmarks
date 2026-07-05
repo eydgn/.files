@@ -1,0 +1,25 @@
+#!/bin/bash
+PROFILE_DIR="$HOME/.config/mozilla/firefox"
+PROFILE=$(ls "$PROFILE_DIR"/*.default*/places.sqlite 2>/dev/null | head -1)
+[[ -z "$PROFILE" ]] && { notify-send "rofi-bookmarks" "No Firefox profile found" -t 2000; exit 1; }
+
+declare -A map
+names=()
+
+while IFS=$'\t' read -r name url; do
+    [[ -z "$name" ]] && name=$(echo "$url" | sed -E 's|https?://([^/]+).*|\1|')
+    map["$name"]="$url"
+    names+=("$name")
+done < <(sqlite3 "$PROFILE" "
+SELECT b.title, p.url
+FROM moz_bookmarks b
+JOIN moz_places p ON b.fk = p.id
+WHERE b.type = 1 AND b.title IS NOT NULL AND b.title != ''
+" 2>/dev/null)
+
+[[ ${#names[@]} -eq 0 ]] && { notify-send "rofi-bookmarks" "No bookmarks" -t 2000; exit 1; }
+
+selected=$(printf '%s\n' "${names[@]}" | rofi -dmenu -i -p 'Bookmarks')
+[[ -z "$selected" ]] && exit 0
+
+xdg-open "${map[$selected]}"

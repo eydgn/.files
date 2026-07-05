@@ -1,0 +1,31 @@
+#!/bin/bash
+root="$HOME/Files/video"
+
+entries=()
+
+while IFS= read -r d; do
+    entries+=("$d")
+done < <(find "$root" -mindepth 1 -maxdepth 1 -type d ! -name 'shared' ! -name '.*' -printf '%f\n' | sort)
+
+if [ -d "$root/shared" ]; then
+    while IFS= read -r d; do
+        entries+=("shared/${d#$root/shared/}")
+    done < <(find "$root/shared" -mindepth 1 -maxdepth 1 -type d ! -name '.*' | sort)
+fi
+
+selected=$(printf '%s\n' "${entries[@]}" | rofi -dmenu -p 'Folder')
+[ -z "$selected" ] && exit 0
+
+# Pick a video (flat, one level)
+declare -A map
+names=()
+while IFS= read -r f; do
+    base="${f##*/}"
+    name="${base%.*}"
+    map["$name"]="$f"
+    names+=("$name")
+done < <(find "$root/$selected" -maxdepth 1 -type f ! -name '.*' \( -name '*.mp4' -o -name '*.mkv' -o -name '*.webm' -o -name '*.avi' -o -name '*.mov' \) | sort -V)
+
+selected_video=$(printf '%s\n' "${names[@]}" | rofi -dmenu -p "$selected")
+[ -z "$selected_video" ] && exit 0
+exec mpv "${map[$selected_video]}"

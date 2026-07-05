@@ -1,0 +1,22 @@
+#!/bin/bash
+
+CLEAR=" clear history"
+
+list() {
+    cliphist list
+    echo "$CLEAR"
+}
+
+selected=$(list | rofi -dmenu -i -p 'Clipboard')
+[[ -z "$selected" ]] && exit 0
+
+if [[ "$selected" == "$CLEAR" ]]; then
+    cliphist wipe
+    notify-send "clipmenu" "Clipboard history cleared" -t 1500
+    exit 0
+fi
+
+content=$(echo "$selected" | cliphist decode)
+echo "$content" | wl-copy
+echo "$content" | cliphist store
+notify-send "clipmenu" "Copied" -t 1500

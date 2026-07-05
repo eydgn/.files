@@ -1,0 +1,57 @@
+#!/bin/bash
+HIST="$HOME/.cache/rofi-search-history"
+mkdir -p "$(dirname "$HIST")"
+
+case "${1:-}" in
+    -c|--clear)
+        rm -f "$HIST"
+        notify-send "rofi-search" "History cleared" -t 1500
+        exit 0
+        ;;
+esac
+
+history=$(tail -n 50 "$HIST" 2>/dev/null | tac | awk '!seen[$0]++')
+query=$({ echo "Clear history"; [[ -n "$history" ]] && echo "$history"; } | rofi -dmenu -p 'Search')
+[[ -z "$query" ]] && exit 0
+
+if [[ "$query" == "Clear history" ]]; then
+    rm -f "$HIST"
+    notify-send "rofi-search" "History cleared" -t 1500
+    exit 0
+fi
+
+echo "$query" >> "$HIST"
+tail -n 200 "$HIST" | tac | awk '!seen[$0]++' | head -n 50 > "${HIST}.tmp" && mv "${HIST}.tmp" "$HIST"
+
+case "$query" in
+    '!yt '*)
+        q="${query#!yt }"
+        url="https://www.youtube.com/results?search_query="
+        encoded=$(printf '%s' "$q" | python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.stdin.read()))")
+        ;;
+    '!gh '*)
+        path="${query#!gh }"
+        xdg-open "https://github.com/$path"
+        exit 0
+        ;;
+    '!git '*)
+        q="${query#!git }"
+        url="https://github.com/search?q="
+        encoded=$(printf '%s' "$q" | python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.stdin.read()))")
+        ;;
+    *)
+        if [[ "$query" =~ ^https?:// ]]; then
+            xdg-open "$query"
+            exit 0
+        fi
+        if [[ "$query" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(/.*)?$ ]]; then
+            xdg-open "https://$query"
+            exit 0
+        fi
+        q="$query"
+        url="https://www.google.com/search?q="
+        encoded=$(printf '%s' "$q" | python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.stdin.read()))")
+        ;;
+esac
+
+xdg-open "$url$encoded"

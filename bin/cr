@@ -1,0 +1,190 @@
+#!/usr/bin/env python3
+import argparse
+import os
+import re
+import sys
+
+TURKISH_MAP = {
+    'İ': 'i', 'ı': 'i',
+    'Ö': 'o', 'ö': 'o',
+    'Ü': 'u', 'ü': 'u',
+    'Ç': 'c', 'ç': 'c',
+    'Ş': 's', 'ş': 's',
+    'Ğ': 'g', 'ğ': 'g',
+}
+
+def transliterate(text):
+    for tr, en in TURKISH_MAP.items():
+        text = text.replace(tr, en)
+    return text
+
+def slugify(text):
+    text = transliterate(text)
+    text = text.lower()
+    text = text.replace("'", "")
+    text = re.sub(r'[^a-z0-9-]+', '-', text)
+    text = re.sub(r'-+', '-', text)
+    text = text.strip('-')
+    return text
+
+def phase1(filename):
+    """Extract index and slugify. Returns (stem, ext)."""
+    stem, ext = os.path.splitext(filename)
+    m = re.match(r'^(\d+)\s*[-._\s]+\s*(.*)', stem)
+    if m:
+        index = m.group(1)
+        rest = m.group(2)
+        rest_slug = slugify(rest)
+        new_stem = f'{index}_{rest_slug}'
+    else:
+        new_stem = slugify(stem)
+    return new_stem, ext
+
+def phase1_5(stem):
+    """Remove redundant leading number from slug-rest if next token starts with digit."""
+    if '_' not in stem:
+        return stem
+    index, rest = stem.split('_', 1)
+    m = re.match(r'^(\d+)-(\d)', rest)
+    if m:
+        rest = rest[len(m.group(1)) + 1:]
+    return f'{index}_{rest}'
+
+def phase2(stems):
+    """Remove tokens that appear in ALL stems."""
+    if len(stems) < 2:
+        return stems
+
+    tokenized = [re.split(r'[-_]', s) for s in stems]
+    common = set(tokenized[0])
+    for tokens in tokenized[1:]:
+        common &= set(tokens)
+
+    if not common:
+        return stems
+
+    result = []
+    for s, tokens in zip(stems, tokenized):
+        filtered = [t for t in tokens if t not in common]
+        if len(filtered) < 3:
+            result.append(s)
+        else:
+            s_new = '-'.join(filtered)
+            if '_' in s and len(filtered) > 1:
+                first, rest = s_new.split('-', 1)
+                s_new = f'{first}_{rest}'
+            result.append(s_new)
+    return result
+
+def resolve_collision(path, seen):
+    base, ext = os.path.splitext(path)
+    candidate = path
+    counter = 1
+    while candidate in seen or os.path.exists(candidate):
+        candidate = f'{base}-{counter}{ext}'
+        counter += 1
+    return candidate
+
+def collect_files(paths, recursive):
+    files = []
+    for p in paths:
+        if os.path.isfile(p):
+            files.append(p)
+        elif os.path.isdir(p):
+            if recursive:
+                for root, _, filenames in os.walk(p):
+                    for f in filenames:
+                        files.append(os.path.join(root, f))
+            else:
+                for f in os.listdir(p):
+                    fp = os.path.join(p, f)
+                    if os.path.isfile(fp):
+                        files.append(fp)
+        else:
+            print(f'Warning: {p} is not a file or directory', file=sys.stderr)
+    return sorted(files)
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Rename files to compact, English-keyboard-friendly names.'
+    )
+    parser.add_argument(
+        'paths', nargs='*', metavar='path',
+        help='Files or directories to process (default: current directory)'
+    )
+    parser.add_argument(
+        '-r', '--recursive', action='store_true',
+        help='Recurse into subdirectories'
+    )
+    parser.add_argument(
+        '-y', '--yes', action='store_true',
+        help='Skip confirmation prompt'
+    )
+    args = parser.parse_args()
+
+    if not args.paths:
+        args.paths = [os.getcwd()]
+
+    all_files = collect_files(args.paths, args.recursive)
+
+    if not all_files:
+        print('No files found.')
+        return
+
+    # Group files by their parent directory
+    groups = {}
+    for fp in all_files:
+        d = os.path.dirname(fp)
+        groups.setdefault(d, []).append(fp)
+
+    renames = []
+    seen_targets = set()
+
+    for dirname, file_group in groups.items():
+        # Phase 1 + 1.5 per file in this group
+        items = []
+        for fp in file_group:
+            stem, ext = phase1(os.path.basename(fp))
+            stem = phase1_5(stem)
+            items.append((stem, ext))
+
+        # Phase 2 within this group only
+        stems = [stem for stem, _ in items]
+        stems = phase2(stems)
+        items = list(zip(stems, [ext for _, ext in items]))
+
+        for fp, (stem, ext) in zip(file_group, items):
+            basename = os.path.basename(fp)
+            new_basename = stem + ext
+            if new_basename == basename:
+                continue
+            new_fp = os.path.join(dirname, new_basename)
+            new_fp = resolve_collision(new_fp, seen_targets)
+            seen_targets.add(new_fp)
+            renames.append((fp, new_fp))
+
+    if not renames:
+        print('All filenames already compact.')
+        return
+
+    print('Planned renames:')
+    for old, new in renames:
+        old_short = os.path.relpath(old)
+        new_short = os.path.relpath(new)
+        print(f'  {old_short}')
+        print(f'  \u2192 {new_short}')
+        print()
+
+    if not args.yes:
+        answer = input('Apply these changes? [y/N] ').strip().lower()
+        if answer != 'y':
+            print('Aborted.')
+            return
+
+    for old, new in renames:
+        os.rename(old, new)
+
+    print(f'Renamed {len(renames)} file(s).')
+
+if __name__ == '__main__':
+    main()
