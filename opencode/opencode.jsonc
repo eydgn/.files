@@ -1,4 +1,5 @@
 {
-  "$schema": "https://opencode.ai/config.json",
-  "lsp": true
+    "$schema": "https://opencode.ai/config.json",
+    "plugin": ["opencode-parser"],
+    "lsp": true
 }
