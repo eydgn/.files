@@ -1,5 +1,4 @@
 {
-    "output": ["DP-1"],
     "layer": "bottom",
     "position": "bottom",
     // "mode": "overlay",
