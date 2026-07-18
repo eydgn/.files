@@ -17,6 +17,7 @@
         "pulseaudio",
         "network",
         "custom/weather",
+        "battery",
         "tray"
     ],
 
@@ -122,5 +123,18 @@
             "disconnected": ""
         },
         "tooltip-format": "{ifname} - {ipaddr}"
+    },
+    "battery": {
+        "interval": 30,
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity}%",
+        "format-charging": "󰂄 {capacity}%",
+        "format-plugged": "󰂄 {capacity}%",
+        "format-full": "󰁹 Full",
+        "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+        "tooltip-format": "{timeTo}\n{power} watts"
     }
 }
