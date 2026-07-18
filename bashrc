@@ -10,7 +10,7 @@ export MANPAGER="sh -c 'col -bx | bat -l man -p'"   # cleaner than the awk appro
 export GPG_TTY=$(tty)
 
 # ── PATH ───────────────────────────────────────────────────────
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/nvim/mason/bin:$HOME/go/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/nvim/mason/bin:$HOME/.go/bin:$PATH"
 
 # ── Colors ─────────────────────────────────────────────────────
 export LS_COLORS="$(vivid generate catppuccin-mocha)"
