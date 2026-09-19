@@ -1,5 +1,12 @@
 # vim: ft=bash
 
+# ---- toolchain homes (XDG) ----
+export RUSTUP_HOME="$HOME/.local/share/rustup"
+export CARGO_HOME="$HOME/.local/share/cargo"
+export GOPATH="$HOME/.local/share/go"
+export npm_config_cache="$HOME/.local/cache/npm"
+export npm_config_prefix="$HOME/.npm-global"
+
 [[ $- != *i* ]] && return
 
 # ── Env ────────────────────────────────────────────────────────
@@ -10,7 +17,7 @@ export MANPAGER="sh -c 'col -bx | bat -l man -p'"   # cleaner than the awk appro
 export GPG_TTY=$(tty)
 
 # ── PATH ───────────────────────────────────────────────────────
-export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/nvim/mason/bin:$HOME/.go/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.local/share/cargo/bin:$HOME/.local/share/nvim/mason/bin:$HOME/.local/share/go/bin:$PATH"
 
 # ── Colors ─────────────────────────────────────────────────────
 export LS_COLORS="$(vivid generate catppuccin-mocha)"
@@ -42,3 +49,7 @@ eval "$(zoxide init bash)"
 
 # ── Prompt ─────────────────────────────────────────────────────
 PS1='[\u@\h \W]\$ '
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/enes/.local/bin:$PATH"

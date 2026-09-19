@@ -1,10 +1,18 @@
+# ---- toolchain homes (XDG) ----
+set -gx RUSTUP_HOME "$HOME/.local/share/rustup"
+set -gx CARGO_HOME "$HOME/.local/share/cargo"
+set -gx GOPATH "$HOME/.local/share/go"
+set -gx npm_config_cache "$HOME/.local/cache/npm"
+set -gx npm_config_prefix "$HOME/.npm-global"
+
 if status is-interactive
 
     fish_add_path ~/.bin
-    fish_add_path ~/.cargo/bin
+    fish_add_path ~/.local/bin
+    fish_add_path ~/.local/share/cargo/bin
     fish_add_path ~/.local/share/nvim/mason/bin
-    fish_add_path ~/.go/bin
-    fish_add_path ~~/.npm-global
+    fish_add_path ~/.local/share/go/bin
+    fish_add_path ~/.npm-global/bin
 
     set -g fish_history_size 10000
     set -gx EDITOR nvim
@@ -79,3 +87,7 @@ if status is-interactive
     source ~/.config/fish/keybinds.fish
 
 end
+
+
+# Added by Antigravity CLI installer
+set -gx PATH "/home/enes/.local/bin" $PATH
