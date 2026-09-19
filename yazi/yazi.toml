@@ -10,7 +10,7 @@ group = "git"
 
 [mgr]
 # ratio= [1,2,4]
-sort_by = "natural"
+sort_by = "extension"
 sort_dir_first = true
 sort_translit = true
 
