@@ -1,5 +1,2 @@
-fish-lsp
-go-pray-bin
+gtk-engine-murrine
 surge
-wttrbar-bin
-yazi-nightly-bin
