@@ -6,6 +6,12 @@
       ],
       "help": "add download"
     },
+    "AddFromClipboard": {
+      "keys": [
+        "A"
+      ],
+      "help": "add from clipboard"
+    },
     "BatchImport": {
       "keys": [
         "b",
@@ -252,6 +258,13 @@
       ],
       "help": "home"
     },
+    "Jump": {
+      "keys": [
+        "a-z",
+        "0-9"
+      ],
+      "help": "jump to file"
+    },
     "Open": {
       "keys": [
         "."
@@ -462,12 +475,13 @@
       ],
       "help": "ignore for now"
     },
-    "NeverRemind": {
+    "Install": {
       "keys": [
-        "n",
-        "N"
+        "enter",
+        "u",
+        "U"
       ],
-      "help": "never remind"
+      "help": "install update"
     },
     "OpenGitHub": {
       "keys": [

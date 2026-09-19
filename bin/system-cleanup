@@ -1,0 +1,272 @@
+#!/usr/bin/env bash
+# ============================================================
+#  system-cleanup — regular maintenance for CachyOS / Arch
+#
+#  Usage:
+#    system-cleanup             interactive (asks before removing orphans)
+#    system-cleanup --yes       unattended
+#    system-cleanup --dry-run   show what WOULD be cleaned, change nothing
+#
+#  Safety:
+#    * updates run only with your confirmation (or --yes)
+#    * keeps newest 1 version of installed packages in pacman cache
+#    * never removes kernels, active packages, or data outside caches
+#    * auto-skips tools that aren't installed (pip, cargo-cache, docker, ...)
+#    * aborts if pacman is already running
+# ============================================================
+set -euo pipefail
+
+DRY=0; YES=0
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run) DRY=1 ;;
+        --yes)     YES=1 ;;
+        *) echo "unknown option: $arg" >&2; exit 1 ;;
+    esac
+done
+
+# run with the rehomed toolchains even from non-login shells
+export CARGO_HOME="${CARGO_HOME:-$HOME/.local/share/cargo}"
+export npm_config_cache="${npm_config_cache:-$HOME/.local/cache/npm}"
+
+# ---------- output helpers ----------
+c0=$'\e[0m'; cB=$'\e[1;34m'; cG=$'\e[1;32m'; cY=$'\e[1;33m'
+[[ -t 1 ]] || c0= cB= cG= cY=
+header() { printf '%s\n' "${cB}── $1 ──${c0}"; }
+ok()     { printf '%s\n' "${cG}✓ $1${c0}"; }
+warn()   { printf '%s\n' "${cY}⚠ $1${c0}"; }
+info()   { printf '%s\n' "  $1"; }
+freed=0
+run() {  # executes normally; under --dry-run just prints the command
+    if (( DRY )); then printf '%s\n' "  (dry-run) $*"; return 0; fi
+    "$@"
+}
+srun() { # sudo wrapper (no-op if already root)
+    if (( EUID == 0 )); then run "$@"; else run sudo "$@"; fi
+}
+have() { command -v "$1" >/dev/null 2>&1; }
+confirm() { # $1 = prompt → ask y/N on the terminal
+    [[ -n "${1:-}" ]] && printf '%s [y/N] ' "$1"
+    local a; read -r a; [[ "$a" == y || "$a" == Y ]]
+}
+clean_dir() { # $1 name, $2 path → removes CONTENTS only (not the dir)
+    local name=$1 path=$2 size
+    [[ -d "$path" ]] || { info "$name: nothing to clean"; return 0; }
+    size=$(du -sb "$path" 2>/dev/null | cut -f1) || size=0
+    if (( DRY )); then
+        [[ "$size" -gt 0 ]] && info "$name: would remove $(du -sh "$path" | cut -f1)" \
+                           || info "$name: empty"
+    elif (( size > 0 )); then
+        find "$path" -mindepth 1 -delete
+        ok "$name: removed $(numfmt --to=iec "$size")"
+        freed=$(( freed + size ))
+    else
+        info "$name: empty"
+    fi
+}
+
+# ---------- prerequisites ----------
+[[ -e /var/lib/pacman/db.lck ]] && { warn "pacman is running — aborting."; exit 1; }
+
+before=$(df -B1 --output=used / | tail -1 | tr -d ' ')
+
+# ---------- 1. system updates ----------
+header "Updates"
+if have paru; then
+    pending=$(paru -Qu 2>/dev/null || true)
+    if [[ -z "$pending" ]]; then
+        ok "system up to date"
+    else
+        printf '%s\n' "$pending" | sed 's/^/    /'
+        if (( DRY )); then
+            info "would: paru -Syu --noconfirm"
+        elif (( YES )) || confirm "Apply these updates now?"; then
+            if paru -Syu --noconfirm; then ok "updates applied"; else warn "update failed — fix and re-run"; fi
+        else
+            ok "updates skipped"
+        fi
+    fi
+else
+    warn "paru not found — checking with pacman only"
+    srun pacman -Sy 2>/dev/null || true
+    pending=$(checkupdates 2>/dev/null || true)
+    [[ -z "$pending" ]] && ok "system up to date" || { printf '%s\n' "$pending" | sed 's/^/    /'; info "run: sudo pacman -Syu"; }
+fi
+
+# ---------- 2. pacman package cache ----------
+header "Pacman cache"
+cachedir=$(pacman-conf CacheDir 2>/dev/null | head -1)
+cachedir=${cachedir:-/var/cache/pacman/pkg}
+if have paccache; then
+    info "keeping newest 1 of installed pkgs, dropping cache of uninstalled"
+    if (( DRY )); then
+        srun paccache -dk1 -duk0 || warn "paccache preview failed"
+    else
+        srun paccache -rk1 -ruk0 || warn "paccache step failed"
+    fi
+    partials=$(find "$cachedir" -maxdepth 1 -name 'download-*' -type f 2>/dev/null | wc -l)
+    if (( partials > 0 )); then
+        info "$partials stale partial download(s)"
+        if (( DRY )); then
+            info "would remove $partials 'download-*' temp files"
+        else
+            srun find "$cachedir" -maxdepth 1 -name 'download-*' -type f -delete \
+                && ok "stale partial downloads removed" || warn "partial cleanup failed"
+        fi
+    fi
+else
+    warn "paccache missing — install pacman-contrib"
+fi
+
+# ---------- 3. orphaned packages ----------
+header "Orphaned packages"
+orphans=$(pacman -Qtdq 2>/dev/null || true)
+if [[ -z "$orphans" ]]; then
+    ok "no orphans"
+else
+    printf '%s\n' "$orphans" | sed 's/^/    /'
+    if (( DRY )); then
+        info "would: sudo pacman -Rns $(echo "$orphans" | tr '\n' ' ')"
+    elif (( YES )) || confirm "Remove these orphans?"; then
+        srun pacman -Rns --noconfirm $orphans && ok "orphans removed" \
+            || warn "removal failed — some may actually be needed; re-check the list"
+    else
+        ok "skipped"
+    fi
+fi
+
+# ---------- 4. paru build cache ----------
+header "paru build cache"
+if have paru; then
+    clean_dir "paru clone cache" "$HOME/.cache/paru/clone"
+    clean_dir "paru diff cache" "$HOME/.cache/paru/diff"
+else
+    info "paru not installed — skipping"
+fi
+
+# ---------- 5. journal log vacuum ----------
+header "Journal logs"
+if (( DRY )); then
+    info "journal usage: $(journalctl --disk-usage 2>/dev/null | tail -1)"
+    info "would: journalctl --vacuum-size=64M"
+else
+    srun journalctl --vacuum-size=64M >/dev/null && ok "journal vacuumed to 64M" || warn "journal vacuum failed"
+fi
+
+# ---------- 6. coredumps ----------
+header "Coredumps"
+if have coredumpctl; then
+    if (( DRY )); then
+        n=$(sudo ls /var/lib/systemd/coredump 2>/dev/null | wc -l)
+        info "coredumps stored: $n — would purge"
+    else
+        if coredumpctl clean >/dev/null 2>&1 || sudo find /var/lib/systemd/coredump -mindepth 1 -delete; then
+            ok "coredumps purged"
+        else
+            warn "coredump cleanup failed"
+        fi
+    fi
+else
+    info "coredumpctl not available — skipping"
+fi
+
+# ---------- 7. container prune ----------
+header "Container prune"
+if have docker; then
+    if (( DRY )); then
+        info "would: docker system prune -f"
+    else
+        docker system prune -f && ok "docker pruned" || warn "docker prune failed"
+    fi
+elif have podman; then
+    if (( DRY )); then
+        info "would: podman system prune -f"
+    else
+        podman system prune -f && ok "podman pruned" || warn "podman prune failed"
+    fi
+else
+    info "no docker/podman — skipping"
+fi
+
+# ---------- 8. go build cache ----------
+header "go build cache"
+gocache=$(have go && go env GOCACHE 2>/dev/null || echo "$HOME/.cache/go-build")
+clean_dir "go build cache" "$gocache"
+
+# ---------- 9. npm cache ----------
+header "npm cache"
+if have npm; then
+    s=0; [[ -d "$npm_config_cache" ]] && s=$(du -sb "$npm_config_cache" | cut -f1)
+    if (( DRY )); then
+        [[ "$s" -gt 0 ]] && info "npm cache: would clear $(du -sh "$npm_config_cache" | cut -f1)" || info "npm cache: empty"
+    elif (( s > 0 )); then
+        npm cache clean --force 2>/dev/null && ok "npm cache cleared" && freed=$(( freed + s ))
+    else
+        info "npm cache empty"
+    fi
+else
+    info "npm not installed — skipping"
+fi
+
+# ---------- 10. pip cache ----------
+header "pip cache"
+if have pip; then
+    if (( DRY )); then info "would: pip cache purge"; else pip cache purge && ok "pip cache purged" || true; fi
+elif python3 -m pip --version >/dev/null 2>&1; then
+    if (( DRY )); then info "would: python3 -m pip cache purge"; else python3 -m pip cache purge && ok "pip cache purged" || true; fi
+else
+    info "pip not installed — skipping"
+fi
+
+# ---------- 11. cargo registry ----------
+header "cargo registry"
+if have cargo-cache; then
+    if (( DRY )); then info "would: cargo cache --autoclean"; else cargo cache --autoclean && ok "registry cleaned" || true; fi
+else
+    info "cargo-cache not installed — skipping (install once: paru -S cargo-cache)"
+fi
+
+# ---------- 12. thumbnails, trash & stale session logs ----------
+header "Desktop junk"
+clean_dir "thumbnails" "$HOME/.cache/thumbnails"
+clean_dir "trash" "$HOME/.local/share/Trash"
+clean_dir "Xorg logs" "$HOME/.local/share/xorg"
+if compgen -G "$HOME/.xsession-errors*" >/dev/null; then
+    (( DRY )) || { rm -f "$HOME"/.xsession-errors* && ok "xsession-errors removed"; }
+fi
+
+# ---------- 13. foreign (AUR) packages — report only ----------
+header "Foreign (AUR) packages"
+foreign=$(pacman -Qqm 2>/dev/null || true)
+if [[ -z "$foreign" ]]; then
+    ok "none"
+else
+    printf '%s\n' "$foreign" | sed 's/^/    /'
+    info "review manually: pacman -Qd <name>"
+fi
+
+# ---------- 14. kernels — report only ----------
+header "Kernels"
+info "running: $(uname -r)"
+pacman -Q 2>/dev/null | grep '^linux' \
+    | grep -vE -- '-(headers|api-headers|firmware|docs|tools)' \
+    | sed 's/^/    /' || true
+efi_count=$(ls /boot/efi/Linux/*.efi 2>/dev/null | wc -l)
+info "UKIs in /boot/efi/Linux: $efi_count"
+(( efi_count > 1 )) && warn "multiple UKIs — old kernels can be removed once stable"
+
+# ---------- 15. largest dirs in ~ — report only ----------
+header "Largest dirs in ~"
+du -h --max-depth=1 "$HOME" 2>/dev/null | sort -rh | head -10 \
+    | awk '{printf "  %8s  %s\n", $1, $2}' || true
+
+# ---------- summary ----------
+header "Done"
+after=$(df -B1 --output=used / | tail -1 | tr -d ' ')
+if (( DRY )); then
+    ok "dry-run — nothing was changed"
+else
+    saved=$(( before - after ))
+    (( saved < 0 )) && saved=0
+    ok "freed on /: $(numfmt --to=iec -- "$saved")  (tracked caches: $(numfmt --to=iec -- "$freed"))"
+fi

@@ -1,7 +1,8 @@
 set scroll-step 50
 set adjust-open "height"
 
-set pages-per-row 1
+set pages-per-row 2
+set first-page-column 1:1:3
 
 set font "Monospace 18"
 set synctex true
