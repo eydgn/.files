@@ -1,3 +1,4 @@
+aead
 aesni_intel
 amd_atl
 amdgpu
@@ -23,6 +24,7 @@ eeepc_wmi
 exfat
 fat
 ff_memless
+gf128mul
 ghash_clmulni_intel
 gpio_amdpt
 gpio_generic
@@ -57,6 +59,7 @@ nvme_auth
 nvme_core
 nvme_keyring
 pcspkr
+phy_package
 platform_profile
 r8125
 r8169
@@ -102,3 +105,4 @@ video
 wmi
 wmi_bmof
 xpad
+zram
