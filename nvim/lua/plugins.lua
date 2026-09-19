@@ -551,6 +551,4 @@ end, { desc = "Neogit" })
 -- UTILITY COMMAND: UpdateAll
 -- ============================================================================
 
-vim.api.nvim_create_user_command("UpdateAll", function()
-    vim.pack.update()
-end, { desc = "Update all plugins" })
+vim.api.nvim_create_user_command("UpdateAll", function() vim.pack.update() end, { desc = "Update all plugins" })
